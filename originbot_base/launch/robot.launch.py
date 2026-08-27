@@ -5,8 +5,8 @@ from launch_ros.actions import Node
 
 
 def generate_launch_description():
-    port_name_arg = DeclareLaunchArgument('port_name', default_value='ttyS1',
-                                          description='usb bus name, e.g. ttyS1')
+    port_name_arg = DeclareLaunchArgument('port_name', default_value='ttyS3',
+                                          description='usb bus name, e.g. ttyS3')
 
     correct_factor_vx_arg = DeclareLaunchArgument('correct_factor_vx', default_value='0.898',
                                                   description='correct factor vx, e.g. 0.9')

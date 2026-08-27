@@ -15,46 +15,50 @@
 # limitations under the License.
 
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, TextSubstitution
-from launch_ros.actions import Node
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from ament_index_python import get_package_share_directory
-from ament_index_python.packages import get_package_prefix
+from launch_ros.actions import Node
+from ament_index_python.packages import get_package_share_directory
 import os
 
-def generate_launch_description():
-    config_file_path = os.path.join(
-        get_package_prefix('hobot_usb_cam'),
-        "lib/hobot_usb_cam/config/usb_camera_calibration.yaml")
-    print("config_file_path is ", config_file_path)
+# 相机参数使用 -p 内联传参（params 文件方式会导致 hobot_usb_cam
+# 无法识别 video_device，退化为逐个探测 /dev/video0..8 并崩溃）
+# 出图链路：hobot_usb_cam(mjpeg, zero_copy=True) -> /hbmem_img
+#           -> hobot_codec_republish -> /image (bgr8)
 
+def generate_launch_description():
     return LaunchDescription([
-        DeclareLaunchArgument(
-            'usb_camera_calibration_file_path',
-            default_value=TextSubstitution(text=str(config_file_path)),
-            description='camera calibration file path'),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
                 os.path.join(
                     get_package_share_directory('hobot_shm'),
                     'launch/hobot_shm.launch.py'))
         ),
-        
         Node(
             package='hobot_usb_cam',
             executable='hobot_usb_cam',
             name='hobot_usb_cam',
+            arguments=['--ros-args',
+                       '-p', 'video_device:=/dev/video8',
+                       '-p', 'pixel_format:=mjpeg',
+                       '-p', 'image_width:=640',
+                       '-p', 'image_height:=480',
+                       '-p', 'framerate:=30',
+                       '-p', 'io_method:=mmap',
+                       '-p', 'zero_copy:=True'],
+        ),
+        Node(
+            package='hobot_codec',
+            executable='hobot_codec_republish',
+            output='screen',
             parameters=[
-                {"camera_calibration_file_path": LaunchConfiguration(
-                    'usb_camera_calibration_file_path')},
-                {"image_height": 480},
-                {"image_width": 640},
-                {"io_method":'mmap'},
-                {"pixel_format": 'mjpeg2rgb'},
-                {"video_device": '/dev/video8'},
-                {"zero_copy":False}
+                    {"channel": 1},
+                    {"in_mode": "shared_mem"},
+                    {"in_format": "jpeg"},
+                    {"out_mode": "ros"},
+                    {"out_format": "bgr8"},
+                    {"sub_topic": "/hbmem_img"},
+                    {"pub_topic": "/image"}
             ],
             arguments=['--ros-args', '--log-level', 'warn']
         )

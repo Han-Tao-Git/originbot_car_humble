@@ -30,7 +30,7 @@ class ImageCompressor(Node):
     def __init__(self):
         super().__init__('image_compressor')
         self.bridge = CvBridge()
-        self.image_sub = self.create_subscription(Image, 'image_raw', self.callback, 10)
+        self.image_sub = self.create_subscription(Image, '/image', self.callback, 10)
         self.compressed_pub = self.create_publisher(CompressedImage, 'compressed_image', 10)
         self.bgr8_pub = self.create_publisher(Image, 'bgr8_image', 10)
 

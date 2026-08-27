@@ -46,7 +46,6 @@ find_package(hobot_cv REQUIRED)
 link_directories(
   ${CMAKE_SYSROOT}/usr/lib/hbbpu/
   /usr/hobot/lib
-  /usr/lib/hbmedia
 )
 
 add_executable(line_follower_perception src/line_follower_perception.cpp)
@@ -72,7 +71,10 @@ target_include_directories(line_follower_perception PUBLIC
 install(TARGETS line_follower_perception
   DESTINATION lib/${PROJECT_NAME})
 
-
+install(DIRECTORY
+  ${PROJECT_SOURCE_DIR}/config/
+  DESTINATION lib/${PROJECT_NAME}/config/
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)

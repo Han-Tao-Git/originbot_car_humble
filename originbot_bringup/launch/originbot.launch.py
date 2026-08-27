@@ -24,7 +24,7 @@ def generate_launch_description():
     ld = launch.LaunchDescription([
         launch.actions.DeclareLaunchArgument(name='use_lidar', default_value='false'),
         launch.actions.DeclareLaunchArgument(name='use_camera', default_value='false'),
-        launch.actions.DeclareLaunchArgument(name='use_imu', default_value='true'),
+        launch.actions.DeclareLaunchArgument(name='use_imu', default_value='false'),
         launch.actions.DeclareLaunchArgument(name='pub_odom', default_value='true'),
 
         launch.actions.IncludeLaunchDescription(

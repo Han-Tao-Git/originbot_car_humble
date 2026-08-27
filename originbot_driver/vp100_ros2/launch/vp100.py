@@ -12,7 +12,7 @@ def launch(launch_descriptor, argv):
     )
     package = 'tf2_ros'
     ld.add_process(
-        # The XYZ/Quat numbers for base_link -> laser_frame are taken from the
+        # The XYZ/Quat numbers for base_link -> laser_link are taken from the
         # turtlebot URDF in
         # https://github.com/turtlebot/turtlebot/blob/931d045/turtlebot_description/urdf/sensors/astra.urdf.xacro
         cmd=[
@@ -21,7 +21,7 @@ def launch(launch_descriptor, argv):
             '0', '0', '0.02',
             '0', '0', '0', '1',
             'base_link',
-            'laser_frame'
+            'laser_link'
         ],
         name='static_tf_pub_laser',
         exit_handler=restart_exit_handler,
