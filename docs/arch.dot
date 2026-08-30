@@ -1,81 +1,59 @@
 digraph OriginBotArch {
-  // ========== 全局样式 ==========
-  rankdir=TB;
-  graph  [fontname="Noto Sans CJK SC", bgcolor="white", nodesep=0.45, ranksep=0.7, pad=0.3];
-  node   [fontname="Noto Sans CJK SC", shape=box, style="rounded,filled", fillcolor="#EAF2FB", color="#2F6BB7", fontsize=12, penwidth=1.2];
-  edge   [fontname="Noto Sans CJK SC", fontsize=10, color="#7A7A7A", arrowsize=0.7, penwidth=1.1];
+  graph  [fontname="Noto Sans CJK SC", bgcolor="white", splines=true, overlap=false, pad=1.0];
+  node   [fontname="Noto Sans CJK SC", fontsize=11, shape=box, style="rounded,filled", penwidth=1.1, color="#5B7BD5", margin="0.1,0.05"];
+  edge   [fontname="Noto Sans CJK SC", fontsize=9, color="#8A8A8A", arrowsize=0.6, penwidth=1.0];
 
-  // ========== 第1层: 硬件 ==========
-  subgraph cluster_hw {
-    label="① 硬件层 (串口 / USB)";
-    fontsize=13; color="#8A9BA8"; style="rounded,dashed";
-    hw_chassis [label="底盘主控板\n(电机/编码器/IMU/\nLED/蜂鸣器)", fillcolor="#FDEBD0"];
-    hw_lidar   [label="VP100 激光雷达", fillcolor="#FDEBD0"];
-    hw_camera  [label="USB 摄像头", fillcolor="#FDEBD0"];
-    hw_joy     [label="无线手柄", fillcolor="#FDEBD0"];
-  }
+  // y 含义(视觉): 顶部小. 编揖/app/driver/hw 分别为 292/242/172/102
+  // ============================================================
+  //  手动坐标布局图。改节点/边后重新生成：(1) 先输出原始 SVG
+  //    neato -n2 -Tsvg arch.dot -o /tmp/raw.svg
+  //  (2) 再加分层色带(必须在 docs/ 目录下执行, 输出覆盖 .svg)
+  //    python3 add_bands.py
+  //  pos="x,y!" 中 y 越小越靠上；x 为列坐标(间隔约195)。
+  // ============================================================
+  // ===== ① 编 排 层 =====
+  bringup [label="originbot_bringup\noriginbot.launch.py", fillcolor="#FFF2CC", color="#BF9000", shape=cds, pos="0,292!"];
 
-  // ========== 第2层: 驱动 ==========
-  subgraph cluster_driver {
-    label="② 驱动层 (originbot_driver / 外部驱动)";
-    fontsize=13; color="#8A9BA8"; style="rounded,dashed";
-    base    [label="originbot_base\n底盘驱动节点\n(串口 /dev/ttyS3)", fillcolor="#D9EAD3"];
-    serial  [label="serial_ros2\n串口驱动库", fillcolor="#D9EAD3"];
-    lidar_node [label="vp100_ros2\n雷达驱动节点", fillcolor="#D9EAD3"];
-    cam_node   [label="hobot_usb_cam / hobot_codec\n相机采集与编码(外部包)", fillcolor="#D9EAD3"];
-    joy_node   [label="joy_linux + teleop_twist_joy\n手柄驱动与映射(外部包)", fillcolor="#D9EAD3"];
-  }
+  // ===== ② 应 用 层 =====
+  nav   [label="originbot_navigation\n建图·EKF·Nav2",  fillcolor="#EAD1DC", pos="0,242!"];
+  demo  [label="originbot_demo\nPython 示例×7",        fillcolor="#EAD1DC", pos="195,242!"];
+  linef [label="originbot_linefollower\n黄色线循迹",     fillcolor="#EAD1DC", pos="390,242!"];
+  ex    [label="originbot_example\nC++ 示例×3",        fillcolor="#EAD1DC", pos="585,242!"];
+  dl    [label="originbot_deeplearning\n跟随·手势·AI",  fillcolor="#EAD1DC", pos="780,242!"];
 
-  // ========== 第3层: 启动编排 ==========
-  subgraph cluster_bringup {
-    label="③ 整机启动编排 (originbot_bringup)";
-    fontsize=13; color="#8A9BA8"; style="rounded,dashed";
-    bringup [label="originbot.launch.py\nuse_lidar / use_camera / use_imu", shape=component, fillcolor="#FFF2CC"];
-    joy_launch [label="joy_teleop.launch.py", shape=component, fillcolor="#FFF2CC"];
-  }
+  // ===== ③ 驱 动 层 =====
+  lidar [label="vp100_ros2\n雷达驱动",   fillcolor="#D9EAD3", color="#1E8449", pos="0,172!"];
+  base  [label="originbot_base\n底盘驱动(ttyS3)", fillcolor="#D9EAD3", color="#1E8449", pos="195,172!"];
+  joy   [label="teleop_twist_joy\n手柄映射", fillcolor="#D9EAD3", color="#1E8449", pos="390,172!"];
+  cam   [label="hobot_usb_cam+codec\n相机采集·编码", fillcolor="#D9EAD3", color="#1E8449", pos="585,172!"];
 
-  // ========== 第4层: 应用层 ==========
-  subgraph cluster_app {
-    label="④ 应用层";
-    fontsize=13; color="#8A9BA8"; style="rounded,dashed";
-    nav   [label="originbot_navigation\nCartographer 建图 + EKF\n+ Nav2 导航", fillcolor="#EAD1DC"];
-    linef [label="originbot_linefollower\n黄色线循迹(Python)", fillcolor="#EAD1DC"];
-    dl    [label="originbot_deeplearning\n人体跟随 / 手势控制", fillcolor="#EAD1DC"];
-    demo  [label="originbot_demo\nLED/蜂鸣器/画圆/\n里程/拍照(Python)", fillcolor="#EAD1DC"];
-    ex    [label="originbot_example\n键盘遥控 / 发导航目标 /\n二维码识别", fillcolor="#EAD1DC"];
-    msgs  [label="originbot_msgs\n自研消息/服务定义\n(Status, Led, Buzzer, PID)", shape=cylinder, fillcolor="#D6D7EF"];
-  }
+  // ===== ④ 硬 件 层 =====
+  hw_lidar  [label="VP100 激光雷达",      fillcolor="#FDEBD0", color="#C55A11", pos="0,102!"];
+  hw_chassis[label="底盘主控板\n电机·编码器·IMU·LED", fillcolor="#FDEBD0", color="#C55A11", pos="195,102!"];
+  hw_joy    [label="无线手柄",            fillcolor="#FDEBD0", color="#C55A11", pos="390,102!"];
+  hw_cam    [label="USB 摄像头",          fillcolor="#FDEBD0", color="#C55A11", pos="585,102!"];
 
-  // ========== 硬件 → 驱动 连线 ==========
-  hw_chassis -> base [label="UART 115200\n0x55协议帧", color="#C00000"];
-  hw_lidar   -> lidar_node [label="串口 230400", color="#C00000"];
-  hw_camera  -> cam_node [label="USB Video", color="#C00000"];
-  hw_joy     -> joy_node [label="USB/2.4G", color="#C00000"];
-  serial -> base [style=dotted, dir=none, label="底层库(非进程)"];
-  
-  // ========== 驱动层内部话题 ==========
-  lidar_node -> nav [label="/scan (LaserScan)", color="#2F6BB7"];
-  cam_node -> linef [label="/image (bgr8)", color="#2F6BB7"];
-  cam_node -> dl [label="/image", color="#2F6BB7"];
-  cam_node -> demo [label="/image", color="#2F6BB7"];
+  // ===== 类型库（驱动带最右空位） =====
+  msgs [label="originbot_msgs\n(消息/服务类型库)", style="rounded,filled,dashed", fillcolor="#EFEFFF", color="#7D3C98", fontsize=10, pos="780,172!"];
 
-  // ========== 启动编排 → 驱动/应用 ==========
-  bringup -> base [label="Include robot.launch.py", style=dashed, color="#6C3483"];
-  bringup -> lidar_node [label="Include vp100.launch.py", style=dashed, color="#6C3483"];
-  bringup -> cam_node [label="Include camera.launch.py", style=dashed, color="#6C3483"];
-  joy_launch -> joy_node [style=dashed, color="#6C3483", label="Include"];
+  // ===== 硬件 → 驱动 =====
+  hw_lidar  -> lidar [label="UART 230400", color="#C55A11"];
+  hw_chassis-> base  [label="UART 115200 0x55", color="#C55A11"];
+  hw_joy    -> joy   [label="USB / 2.4G", color="#C55A11"];
+  hw_cam    -> cam   [label="USB Video", color="#C55A11"];
 
-  // ========== 核心话题总线 ==========
-  {joy_node, nav, linef, dl, demo, ex} -> base [label="/cmd_vel (Twist)", color="#1E8449"];
-  base -> nav [label="/odom (Odometry)", color="#2F6BB7"];
-  base -> demo [label="/odom /originbot_status", color="#2F6BB7"];
-  base -> msgs [label="使用 msg/srv 类型", style=dotted, dir=both, color="#7D3C98"];
-  base -> nav [label="odom→base_footprint TF (可选 IMU)", color="#7D3C98", style=dashed];
-  nav -> base [label="nav2 行为/恢复 (Spin/BackUp)", color="#B9770E"];
+  // ===== 应用 ⇄ 驱动 (话题直连) =====
+  nav   -> base [label="/odom /status"];
+  base  -> nav  [label="/cmd_vel"];
+  demo  -> base [label="/cmd_vel /odom /status"];
+  linef -> base [label="/cmd_vel"];
+  ex    -> base [label="/cmd_vel (Action)"];
+  dl    -> base [label="/cmd_vel"];
+  cam   -> linef [label="/image"];
+  cam   -> dl    [label="/image"];
+  lidar -> nav   [label="/scan"];
+  joy   -> base  [label="/cmd_vel"];
 
-  // ========== 应用层相互 ==========
-  ex -> nav [label="navigate_to_pose (Action)", color="#6C3483"];
-  demo -> base [label="originbot_led/buzzer (Srv)", style=dashed, color="#6C3483"];
-  dl -> base [label="originbot_buzzer (Srv)", style=dashed, color="#6C3483"];
-  msgs -> {base, demo, dl} [label="类型依赖", style=dotted, dir=both, color="#7D3C98"];
+  // ===== 编排 =====
+  bringup -> base [style=dashed, color="#B08030", label="Include 编排", dir=none];
 }
